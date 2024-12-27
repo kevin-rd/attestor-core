@@ -19,7 +19,7 @@ function handleStep(step: { type: string, data: any }) {
 async function main() {
 	const { claimData: claimData, object: result } = await createClaimOnAvs({
 		onStep: handleStep,
-		chainId: '31337',
+		chainId: '5151',
 		ownerPrivateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
 		name: 'http',
 		params: {

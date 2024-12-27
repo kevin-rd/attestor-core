@@ -111,8 +111,7 @@ export async function createClaimOnAvs<N extends ProviderName>({
 	async function requestClaimCreation() {
 		const request: IReclaimServiceManager.ClaimRequestStruct = {
 			provider: name,
-			// blank for now -- till we figure out the right
-			// algorithm for this
+			// blank for now -- till we figure out the right algorithm for this
 			claimUserId: EMPTY_CLAIM_USER_ID,
 			claimHash: getIdentifierFromClaimInfo({
 				provider: name,

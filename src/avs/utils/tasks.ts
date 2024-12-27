@@ -34,7 +34,9 @@ export async function createNewClaimRequestOnChain({
 		owner: ownerAddress
 	}
 	const signature = await getSignature()
-	const task = await contract.createNewTask(fullRequest, signature || '0x00')
+	const task = await contract.createNewTask(fullRequest, signature || '0x00', {
+		gasLimit: 1000000
+	})
 	const rslt = await task.wait()
 	const events = rslt.events
 	// check task created event was emitted

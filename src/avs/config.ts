@@ -15,7 +15,14 @@ export const CHAIN_CONFIGS: { [key: string]: ChainConfig } = {
 		delegationManagerAddress: '0xA44151489861Fe9e3055d95adC98FbD462B948e7',
 		stakeRegistryAddress: '0xDa11C9Da04Ab02C4AF9374B27A5E727944D3E1dD',
 		avsDirectoryAddress: '0x055733000064333CaDDbC92763c58BF0192fFeBf'
-	}
+	},
+	'5151': {
+		rpcUrl: 'http://localhost:8545',
+		contractAddress: '0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB',
+		delegationManagerAddress: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
+		stakeRegistryAddress: '0x9E545E3C0baAB3E08CdfD552C960A1050f373042',
+		avsDirectoryAddress: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707'
+	},
 }
 
 export const PRIVATE_KEY = getEnvVariable('PRIVATE_KEY')!
