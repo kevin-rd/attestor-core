@@ -46,17 +46,14 @@ export function createClaimOnAttestor<N extends ProviderName>(
 	}: CreateClaimOnAttestorOpts<N>
 ) {
 	const logger = _logger
-		// if the client has already been initialised
-		// and no logger is provided, use the client's logger
-		// otherwise default to the global logger
+		// if the client has already been initialised and no logger is provided,
+		// use the client's logger otherwise default to the global logger
 		|| ('logger' in opts.client ? opts.client.logger : LOGGER)
 	return executeWithRetries(
 		attempt => (
 			_createClaimOnAttestor<N>({
 				...opts,
-				logger: attempt
-					? logger.child({ attempt })
-					: logger
+				logger: attempt ? logger.child({ attempt }) : logger
 			})
 		),
 		{ maxRetries, logger, shouldRetry }
@@ -172,7 +169,8 @@ async function _createClaimOnAttestor<N extends ProviderName>(
 			endedHttpRequest?.(err)
 			try {
 				resParser.streamEnded()
-			} catch{ }
+			} catch {
+			}
 		},
 	})
 	const {
@@ -240,7 +238,10 @@ async function _createClaimOnAttestor<N extends ProviderName>(
 
 	// update the response selections
 	if(updateProviderParams) {
-		const { params:updatedParms, secretParams:updatedSecretParms } = await updateProviderParams(tunnel.transcript, tlsVersion ?? 'TLS1_2')
+		const {
+			params: updatedParms,
+			secretParams: updatedSecretParms
+		} = await updateProviderParams(tunnel.transcript, tlsVersion ?? 'TLS1_2')
 		params = { ...params, ...updatedParms }
 		secretParams = { ...secretParams, ...updatedSecretParms }
 	}
@@ -368,7 +369,7 @@ async function _createClaimOnAttestor<N extends ProviderName>(
 	function getLastBlocks(sender: 'client' | 'server', nBlocks: number) {
 		// set the correct index for the server blocks
 		const lastBlocks: typeof tunnel.transcript = []
-		for(let i = tunnel.transcript.length - 1;i >= 0;i--) {
+		for(let i = tunnel.transcript.length - 1; i >= 0; i--) {
 			const block = tunnel.transcript[i]
 			if(block.sender === sender) {
 				lastBlocks.push(block)
@@ -441,7 +442,7 @@ async function _createClaimOnAttestor<N extends ProviderName>(
 
 			if(b.sender === 'server') {
 				serverBlocks.push({
-					plaintext:plaintext,
+					plaintext: plaintext,
 					message: b.message
 				})
 			}

@@ -12,6 +12,7 @@ async function main() {
 		`maxTaskCreationDelayS: ${meta.maxTaskCreationDelayS}`,
 		`minSignaturesPerTask: ${meta.minSignaturesPerTask}`,
 		`maxTaskLifetimeS: ${meta.maxTaskLifetimeS}`,
+		`contractAddr: ${contract.address}`,
 	)
 
 	console.log(`Checking registration for operator ${wallet!.address}`)
@@ -26,8 +27,7 @@ async function main() {
 		})
 	if(!metadata) {
 		console.log('Operator not registered')
-		const isWhitelisted = await contract
-			.isOperatorWhitelisted(operatorAddr)
+		const isWhitelisted = await contract.isOperatorWhitelisted(operatorAddr)
 		console.log(`Is whitelisted: ${isWhitelisted}`)
 		return
 	}

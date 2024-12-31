@@ -55,10 +55,7 @@ export async function createNewClaimRequestOnChain({
 		}
 
 		if(typeof rest.owner !== 'object') {
-			throw new Error(
-				'Owner wallet must be provided or'
-				+ ' requestSignature must be provided'
-			)
+			throw new Error('Owner wallet must be provided or requestSignature must be provided')
 		}
 
 		return signClaimRequest(fullRequest, rest.owner, chainId)

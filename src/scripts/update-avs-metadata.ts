@@ -8,19 +8,16 @@ async function main() {
 
 	const minSignaturesPerTask = getCliArgument('minSignaturesPerTask')
 	if(!minSignaturesPerTask) {
-		throw new Error(
-			'Provide operator address via --minSignaturesPerTask <num>'
-		)
+		throw new Error('Provide operator address via --minSignaturesPerTask <num>')
 	}
 
 	const tx = await contract.updateTaskCreationMetadata({
+		maxTaskLifetimeS: 0,
 		minSignaturesPerTask: +(minSignaturesPerTask || 0),
 		maxTaskCreationDelayS: 0,
-		maxTaskLifetimeS: 0,
 	})
 	await tx.wait()
-
-	console.log('Updated task creation metadata')
+	console.log('Updated task creation metadata, txHash:', tx.hash)
 }
 
 main()

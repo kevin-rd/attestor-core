@@ -1,48 +1,61 @@
 import { createClaimOnAvs } from 'src/avs/client/create-claim-on-avs'
-
-
-function handleStep(step: { type: string, data: any }) {
-	switch (step.type) {
-	case 'taskCreated':
-		console.log('task created')
-		break
-	case 'attestorStep':
-		console.log('attestor step')
-		break
-	case 'attestorDone':
-		console.log('attestor done', step.data.responsesDone)
-		break
-	}
-}
+import { CreateClaimOnAvsStep } from 'src/avs/types'
+import { providers } from 'src/providers'
+import { getInputParameters } from 'src/scripts/generate-receipt'
+import { getCliArgument } from 'src/scripts/utils'
+import { assertValidateProviderParams, logger } from 'src/utils'
+import { getEnvVariable } from 'src/utils/env'
 
 
 async function main() {
-	const { claimData: claimData, object: result } = await createClaimOnAvs({
-		onStep: handleStep,
+	const paramsJson = await getInputParameters()
+	if(!(paramsJson.name in providers)) {
+		throw new Error(`Unknown provider "${paramsJson.name}"`)
+	}
+
+	console.debug('params', paramsJson)
+	assertValidateProviderParams<'http'>(paramsJson.name, paramsJson.params)
+
+	const privateKey = getEnvVariable('PRIVATE_KEY_HEX') ||
+		// demo private key
+		'0x0123788edad59d7c013cdc85e4372f350f828e2cec62d9a2de4560e69aec7f89'
+	const zkEngine = getCliArgument('zk') === 'gnark' ? 'gnark' : 'snarkjs'
+	const { claimData: claimData } = await createClaimOnAvs({
+		onStep,
 		chainId: '5151',
-		ownerPrivateKey: '0xac0974bec39a17e36ba4a6b4d238ff944bacb478cbed5efcae784d7bf4f2ff80',
-		name: 'http',
-		params: {
-			url: 'https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd',
-			method: 'GET',
-			responseRedactions: [],
-			responseMatches: [
-				{
-					type: 'contains',
-					value: 'ethereum'
-				}
-			]
+		payer: { attestor: 'ws://devint-reclaim.mechain.tech/ws' },
+		name: paramsJson.name,
+		secretParams: paramsJson.secretParams,
+		params: paramsJson.params,
+		ownerPrivateKey: privateKey,
+		context: {
+			extractedParameters: { price: '3418.41' },
+			providerHash: '0xf44817617d1dfa5219f6aaa0d4901f9b9b7a6845bbf7b639d9bffeacc934ff9a'
 		},
-		secretParams: {
-			'headers': {
-				'accept': 'application/json, text/plain, */*'
-			}
-		},
+		logger,
+		zkEngine
 	})
 
-	console.log(claimData)
-	console.log(result)
+	const ctx = claimData.context ? JSON.parse(claimData.context) : {}
+	if(ctx.extractedParameters) {
+		console.log('extracted params:', ctx.extractedParameters)
+	} else {
+		console.log('claimData:', claimData)
+	}
 }
 
+function onStep(step: CreateClaimOnAvsStep) {
+	switch (step.type) {
+	case 'taskCreated':
+		console.debug('taskCreated', step.data.task)
+		break
+	case 'attestorStep':
+		console.debug('attestorStep', step.data.step)
+		break
+	case 'attestorDone':
+		console.debug('attestorDone', step.data.responsesDone)
+		break
+	}
+}
 
 main().then()

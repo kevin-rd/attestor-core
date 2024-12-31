@@ -8,14 +8,13 @@ async function main() {
 
 	const address = getCliArgument('address')
 	if(!address) {
-		throw new Error(
-			'Provide operator address via --address <addr>'
-		)
+		throw new Error('Provide operator address via --address <addr>')
 	}
 
-	const tx = await contract.whitelistAddressAsOperator(address, true)
+	const tx = await contract.whitelistAddressAsOperator(address, true, {})
 	await tx.wait()
 
+	console.log('tx hash:', tx.hash)
 	console.log('Whitelisted address:', address)
 }
 

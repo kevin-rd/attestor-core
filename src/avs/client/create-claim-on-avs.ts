@@ -1,13 +1,23 @@
 import { ethers, Wallet } from 'ethers'
 import { CHAIN_CONFIGS, SELECTED_CHAIN_ID } from 'src/avs/config'
-import { IReclaimServiceManager, NewTaskCreatedEventObject, TaskCompletedEventObject } from 'src/avs/contracts/ReclaimServiceManager'
+import {
+	IReclaimServiceManager,
+	NewTaskCreatedEventObject,
+	TaskCompletedEventObject
+} from 'src/avs/contracts/ReclaimServiceManager'
 import { CreateClaimOnAvsOpts } from 'src/avs/types'
 import { initialiseContracts } from 'src/avs/utils/contracts'
 import { createNewClaimRequestOnChain, signClaimRequest } from 'src/avs/utils/tasks'
 import { createClaimOnAttestor as _createClaimOnAttestor, getAttestorClientFromPool } from 'src/client'
 import { ClaimRequestData, ClaimTunnelResponse, ProviderClaimData } from 'src/proto/api'
 import { ProviderName } from 'src/types'
-import { AttestorError, canonicalStringify, getIdentifierFromClaimInfo, logger as LOGGER, unixTimestampSeconds } from 'src/utils'
+import {
+	AttestorError,
+	canonicalStringify,
+	getIdentifierFromClaimInfo,
+	logger as LOGGER,
+	unixTimestampSeconds
+} from 'src/utils'
 
 const EMPTY_CLAIM_USER_ID = ethers.utils.hexlify(new Uint8Array(32))
 
@@ -33,21 +43,11 @@ export async function createClaimOnAvs<N extends ProviderName>({
 		ownerPrivateKey
 	)
 
-	logger.info(
-		{ owner: wallet!.address, contract: contract.address },
-		'creating claim'
-	)
-
+	logger.info({ owner: wallet!.address, contract: contract.address }, 'creating claim')
 	const arg = await requestClaimCreation()
-
-	logger.info(
-		{
-			index: arg.taskIndex,
-			operators: arg.task.operators.length,
-		},
+	logger.info({ index: arg.taskIndex, operators: arg.task.operators.length, },
 		'task created, collecting claim signatures...'
 	)
-
 	onStep?.({ type: 'taskCreated', data: arg })
 
 	const responses: ClaimTunnelResponse[] = []
@@ -78,16 +78,11 @@ export async function createClaimOnAvs<N extends ProviderName>({
 			throw new AttestorError(
 				'ERROR_INVALID_CLAIM',
 				`Claim request does not match the claim res data: ${diff}`,
-				{
-					diff,
-					request: res.request?.data?.[diff],
-					claim: res.claim?.[diff]
-				}
+				{ diff: diff, request: res.request?.data?.[diff], claim: res.claim?.[diff] }
 			)
 		}
 
 		responses.push(res)
-
 		logger.info({ operator: op.addr }, 'signature generated')
 
 		onStep?.({
@@ -97,16 +92,16 @@ export async function createClaimOnAvs<N extends ProviderName>({
 				responsesDone: responses,
 			},
 		})
+
+		const client = getAttestorClientFromPool(op.url)
+		await client.terminateConnection()
 	}
 
-	const rslt = await completeTask()
+	const result = await completeTask()
+	logger.info({ tx: result.txHash, task: arg.taskIndex }, 'claim submitted & validated')
 
-	logger.info(
-		{ tx: rslt.txHash, task: arg.taskIndex },
-		'claim submitted & validated'
-	)
+	return { ...result, claimData: responses[0].claim! }
 
-	return { ...rslt, claimData: responses[0].claim! }
 
 	async function requestClaimCreation() {
 		const request: IReclaimServiceManager.ClaimRequestStruct = {
@@ -116,9 +111,7 @@ export async function createClaimOnAvs<N extends ProviderName>({
 			claimHash: getIdentifierFromClaimInfo({
 				provider: name,
 				parameters: canonicalStringify(params),
-				context: context
-					? canonicalStringify(context)
-					: '',
+				context: context ? canonicalStringify(context) : '',
 			}),
 			owner: wallet!.address,
 			requestedAt: unixTimestampSeconds()
@@ -147,6 +140,7 @@ export async function createClaimOnAvs<N extends ProviderName>({
 			jsonCreateClaimRequest: JSON.stringify(request),
 			requestSignature
 		})
+		await client.terminateConnection()
 
 		return JSON.parse(rslt.jsonTask) as NewTaskCreatedEventObject
 	}
@@ -178,6 +172,7 @@ export async function createClaimOnAvs<N extends ProviderName>({
 			taskIndex: arg.taskIndex,
 			completedTaskJson: JSON.stringify(data)
 		})
+		await client.terminateConnection()
 		const object = JSON.parse(rslt.taskCompletedObjectJson) as TaskCompletedEventObject
 		return { object, txHash: rslt.txHash }
 	}

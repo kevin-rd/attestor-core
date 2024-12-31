@@ -19,9 +19,9 @@ import {
 } from '..'
 
 type ProviderReceiptGenerationParams<P extends ProviderName> = {
-    name: P
-    params: ProviderParams<P>
-    secretParams: ProviderSecretParams<P>
+	name: P
+	params: ProviderParams<P>
+	secretParams: ProviderSecretParams<P>
 }
 
 // tmp change till we move OPRF attestor to prod
@@ -38,10 +38,10 @@ export async function main<T extends ProviderName>(
 		throw new Error(`Unknown provider "${paramsJson.name}"`)
 	}
 
+	console.debug('params', paramsJson)
 	assertValidateProviderParams<'http'>(paramsJson.name, paramsJson.params)
 
-	let attestorHostPort = getCliArgument('attestor')
-        || DEFAULT_ATTESTOR_HOST_PORT
+	let attestorHostPort = getCliArgument('attestor') || DEFAULT_ATTESTOR_HOST_PORT
 	let server: WebSocketServer | undefined
 	if(attestorHostPort === 'local') {
 		console.log('starting local attestor server...')
@@ -63,9 +63,9 @@ export async function main<T extends ProviderName>(
 	if(receipt.error) {
 		console.error('claim creation failed:', receipt.error)
 	} else {
-		const ctx = receipt.claim?.context
-			? JSON.parse(receipt.claim.context)
-			: {}
+		console.info('receipt.request.data:', receipt.request?.data)
+		console.info('receipt.claim:', receipt.claim)
+		const ctx = receipt.claim?.context ? JSON.parse(receipt.claim.context) : {}
 		console.log(`receipt is valid for ${paramsJson.name} provider`)
 		if(ctx.extractedParameters) {
 			console.log('extracted params:', ctx.extractedParameters)
@@ -85,11 +85,10 @@ export async function main<T extends ProviderName>(
 	const client = getAttestorClientFromPool(attestorHostPort)
 	await client.terminateConnection()
 	server?.close()
-
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getInputParameters(): Promise<ProviderReceiptGenerationParams<any>> {
+export async function getInputParameters(): Promise<ProviderReceiptGenerationParams<any>> {
 	const paramsJsonFile = getCliArgument('json')
 	if(!paramsJsonFile) {
 		const name = getCliArgument('name')
@@ -110,7 +109,7 @@ async function getInputParameters(): Promise<ProviderReceiptGenerationParams<any
 	for(const variable in process.env) {
 		fileContents = fileContents.replace(
 			`{{${variable}}}`,
-            process.env[variable]!
+			process.env[variable]!
 		)
 	}
 

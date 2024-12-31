@@ -67,7 +67,6 @@ export async function registerOperator({
 		}
 	}
 
-
 	// Add Whitelist
 	if(!await contract.isOperatorWhitelisted(addr)) {
 		logger.info('add operator to whitelist')
@@ -75,12 +74,11 @@ export async function registerOperator({
 		await tx2.wait()
 	}
 
-
 	// register Operator with Signature on stake Registry Contract
 	if(!(await registryContract.operatorRegistered(addr))) {
 		const salt = ethers.utils.hexlify(ethers.utils.randomBytes(32))
 		// Example expiry, 1 hour from now
-		const expiry = Math.floor(Date.now() / 1000) + 3600
+		const expiry = Math.floor(Date.now() / 1000) + 3600 * 24
 		// Define the output structure
 		const operatorSignature = {
 			expiry: expiry,
@@ -108,7 +106,7 @@ export async function registerOperator({
 		await tx2.wait()
 		logger.info('operator registered on AVS successfully')
 	} else {
-		logger.info('Operator already registered on AVS')
+		logger.info('Operator already registered on AVS, skip')
 	}
 
 	const existingMetadata = await contract.getMetadataForOperator(addr)
@@ -120,15 +118,12 @@ export async function registerOperator({
 			throw err
 		})
 	const metadata = { addr, url: reclaimRpcUrl }
-	if(
-		existingMetadata?.addr === metadata.addr
-		&& existingMetadata?.url === metadata.url
-	) {
+	if(existingMetadata?.addr === metadata.addr && existingMetadata?.url === metadata.url) {
 		logger.info('operator metadata already up to date')
 		return
 	}
 
-	await contract.updateOperatorMetadata(metadata)
-
-	logger.info({ metadata }, 'operator metadata updated successfully')
+	const tx4 = await contract.updateOperatorMetadata(metadata)
+	await tx4.wait()
+	logger.info({ metadata }, 'operator metadata updated successfully, txHash:', tx4.hash)
 }
