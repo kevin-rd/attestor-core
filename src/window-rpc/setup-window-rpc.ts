@@ -5,7 +5,7 @@ import { createClaimOnAttestor } from 'src/client'
 import { extractHTMLElement, extractJSONValueIndex, generateRequstAndResponseFromTranscript } from 'src/providers/http/utils'
 import { OPRFOperators, ProviderParams, ProviderSecretParams, ZKOperators } from 'src/types'
 import { makeLogger } from 'src/utils'
-import { B64_JSON_REPLACER } from 'src/utils/b64-json'
+import { B64_JSON_REPLACER, B64_JSON_REVIVER } from 'src/utils/b64-json'
 import { Benchmark } from 'src/utils/benchmark'
 import { CommunicationBridge, RPCCreateClaimOptions, WindowRPCClient, WindowRPCErrorResponse, WindowRPCIncomingMsg, WindowRPCOutgoingMsg, WindowRPCResponse } from 'src/window-rpc/types'
 import { generateRpcRequestId, getCurrentMemoryUsage, getWsApiUrlFromLocation, mapToCreateClaimResponse, waitForResponse } from 'src/window-rpc/utils'
@@ -46,9 +46,12 @@ export function setupWindowRpc() {
 
 			const req: WindowRPCIncomingMsg = (
 				typeof event.data === 'string'
-					? JSON.parse(event.data)
+					? JSON.parse(event.data, B64_JSON_REVIVER)
 					: event.data
 			)
+
+			logger.debug({ req, origin: event.origin }, 'recv RPC message')
+
 			// ignore any messages not for us
 			if(!VALID_MODULES.includes(req.module)) {
 				return
@@ -81,6 +84,9 @@ export function setupWindowRpc() {
 						? JSON.parse(req.request.context)
 						: undefined,
 					zkOperators: getZkOperators(
+						req.request.zkOperatorMode, req.request.zkEngine
+					),
+					oprfOperators: getOprfOperators(
 						req.request.zkOperatorMode, req.request.zkEngine
 					),
 					client: { url: defaultUrl },

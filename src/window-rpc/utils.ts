@@ -79,21 +79,38 @@ export function mapToCreateClaimResponse(
 export function waitForResponse<T extends keyof WindowRPCAppClient>(
 	type: T,
 	requestId: string,
-	bridge: CommunicationBridge
+	bridge: CommunicationBridge,
+	timeoutMs = 60_000
 ) {
 	type R = Awaited<ReturnType<WindowRPCAppClient[T]>>
 	const returnType = `${type}Done` as const
 	return new Promise<R>((resolve, reject) => {
-		const cancel = bridge.onMessage(msg => {
-			if(msg.id === requestId) {
-				if(msg.type === 'error') {
-					reject(new Error(msg.data.message))
-				} else if(msg.type === returnType) {
-					resolve(msg.response as R)
-				}
+		const timeout = setTimeout(() => {
+			reject(
+				new AttestorError(
+					'ERROR_INTERNAL',
+					`Timeout waiting for response: ${type}`,
+					{ requestId }
+				)
+			)
+			cancel()
+		}, timeoutMs)
 
-				cancel()
+		const cancel = bridge.onMessage(msg => {
+			if(msg.id !== requestId) {
+				return
 			}
+
+			if(msg.type === 'error') {
+				reject(new Error(msg.data.message))
+			} else if(msg.type === returnType) {
+				resolve(msg.response as R)
+			} else {
+				return
+			}
+
+			clearTimeout(timeout)
+			cancel()
 		})
 	})
 }
