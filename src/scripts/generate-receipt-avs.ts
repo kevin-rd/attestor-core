@@ -23,13 +23,13 @@ async function main() {
 	const { claimData: claimData } = await createClaimOnAvs({
 		onStep,
 		chainId: '5151',
-		payer: { attestor: 'ws://devint-reclaim.mechain.tech/ws' },
+		payer: { attestor: 'wss://devint-reclaim.mechain.tech/ws' },
 		name: paramsJson.name,
 		secretParams: paramsJson.secretParams,
 		params: paramsJson.params,
 		ownerPrivateKey: privateKey,
 		context: {
-			extractedParameters: { price: '3418.41' },
+			extractedParameters: { price: '3443.84' },
 			providerHash: '0xf44817617d1dfa5219f6aaa0d4901f9b9b7a6845bbf7b639d9bffeacc934ff9a'
 		},
 		logger,

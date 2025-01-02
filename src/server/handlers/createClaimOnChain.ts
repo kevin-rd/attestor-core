@@ -19,8 +19,7 @@ export const createClaimOnChain: RPCHandler<'createClaimOnChain'> = async(
 
 	const chainId = chainIdNum.toString()
 	const { wallet } = getContracts(chainId.toString())
-	const request: IReclaimServiceManager.ClaimRequestStruct
-		= JSON.parse(jsonCreateClaimRequest)
+	const request: IReclaimServiceManager.ClaimRequestStruct = JSON.parse(jsonCreateClaimRequest)
 	const { task, tx } = await createNewClaimRequestOnChain({
 		request,
 		owner: request.owner,

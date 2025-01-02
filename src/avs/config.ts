@@ -17,14 +17,14 @@ export const CHAIN_CONFIGS: { [key: string]: ChainConfig } = {
 		avsDirectoryAddress: '0x055733000064333CaDDbC92763c58BF0192fFeBf'
 	},
 	'5151': {
-		rpcUrl: 'http://localhost:8545',
+		rpcUrl: getEnvVariable('RPC_URL') || 'https://devint-rpc.mechain.tech:443',
 		contractAddress: '0x84eA74d481Ee0A5332c457a4d796187F6Ba67fEB',
 		delegationManagerAddress: '0xCf7Ed3AccA5a467e9e704C703E8D87F634fB0Fc9',
 		stakeRegistryAddress: '0x9E545E3C0baAB3E08CdfD552C960A1050f373042',
 		avsDirectoryAddress: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707'
 	},
 	'5141': {
-		rpcUrl: 'http://localhost:8545',
+		rpcUrl: getEnvVariable('RPC_URL') || 'https://testint-rpc.mechain.tech:443',
 		contractAddress: '0xa82fF9aFd8f496c3d6ac40E2a0F282E47488CFc9',
 		delegationManagerAddress: '0x5FC8d32690cc91D4c39d9d3abcBD16989F875707',
 		stakeRegistryAddress: '0x1613beB3B2C4f22Ee086B2b38C1476A3cE7f78E8',
